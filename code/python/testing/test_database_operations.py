@@ -29,6 +29,7 @@ from core.retriever import (
 from tools.db_load_utils import parse_rss_to_documents
 from core.embedding import batch_get_embeddings
 import aiohttp
+import ssl
 import feedparser
 
 
@@ -43,7 +44,16 @@ class DatabaseOperationsTest:
     async def download_rss_feed(self) -> str:
         """Download RSS feed content"""
         print(f"\n📥 Downloading RSS feed from: {self.test_rss_url}")
-        async with aiohttp.ClientSession() as session:
+        
+        # Create SSL context that's more lenient with certificate verification
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+        
+        connector = aiohttp.TCPConnector(ssl=ssl_context)
+        timeout = aiohttp.ClientTimeout(total=30)
+        
+        async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
             async with session.get(self.test_rss_url) as response:
                 content = await response.text()
                 print(f"✅ Downloaded RSS feed ({len(content)} bytes)")

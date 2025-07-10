@@ -13,6 +13,7 @@ import requests
 import json
 import re
 import aiohttp
+import ssl
 import asyncio
 import threading
 from typing import Dict, Any, Optional
@@ -115,12 +116,19 @@ class InceptionProvider(LLMProvider):
             payload["diffusing"] = True
 
         try:
-            async with aiohttp.ClientSession() as session:
+            # Create SSL context that's more lenient with certificate verification
+            ssl_context = ssl.create_default_context()
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
+            
+            connector = aiohttp.TCPConnector(ssl=ssl_context)
+            client_timeout = aiohttp.ClientTimeout(total=timeout)
+            
+            async with aiohttp.ClientSession(connector=connector, timeout=client_timeout) as session:
                 async with session.post(
                     self.API_URL, 
                     headers=HEADERS, 
-                    json=payload, 
-                    timeout=timeout
+                    json=payload
                 ) as resp:
                     resp.raise_for_status()
                     data = await resp.json()

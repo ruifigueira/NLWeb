@@ -20,6 +20,7 @@ from core.retriever import (
     search_all_sites
 )
 import aiohttp
+import ssl
 import feedparser
 from core.embedding import batch_get_embeddings
 
@@ -36,7 +37,16 @@ async def test_write_endpoint():
     try:
         # Download RSS feed
         print(f"\n📥 Downloading RSS feed...")
-        async with aiohttp.ClientSession() as session:
+        
+        # Create SSL context that's more lenient with certificate verification
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+        
+        connector = aiohttp.TCPConnector(ssl=ssl_context)
+        timeout = aiohttp.ClientTimeout(total=30)
+        
+        async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
             async with session.get(test_rss_url) as response:
                 rss_content = await response.text()
         

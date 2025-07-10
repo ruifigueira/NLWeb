@@ -14,6 +14,7 @@ import asyncio
 import aiohttp
 import tempfile
 import traceback
+import ssl
 from urllib.parse import urlparse
 
 from typing import List, Dict, Any, Tuple, Union, Optional
@@ -167,7 +168,15 @@ async def fetch_url(url: str) -> Tuple[str, Optional[str]]:
     print(f"Fetching content from URL: {url}")
     
     try:
-        async with aiohttp.ClientSession() as session:
+        # Create SSL context that's more lenient with certificate verification
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+        
+        connector = aiohttp.TCPConnector(ssl=ssl_context)
+        timeout = aiohttp.ClientTimeout(total=30)
+        
+        async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
             async with session.get(url) as response:
                 if response.status != 200:
                     raise ValueError(f"Failed to fetch URL {url}: HTTP {response.status}")

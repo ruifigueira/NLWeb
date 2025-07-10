@@ -16,6 +16,7 @@ import time
 import argparse
 import asyncio
 import aiohttp
+import ssl
 from datetime import datetime
 from urllib.parse import urlparse
 import hashlib
@@ -191,10 +192,18 @@ class IncrementalCrawler:
     
     async def _fetch_page(self, url: str) -> Optional[Tuple[str, int]]:
         """Fetch a single page and return HTML content and size."""
-        async with aiohttp.ClientSession() as session:
+        # Create SSL context that's more lenient with certificate verification
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+        
+        connector = aiohttp.TCPConnector(ssl=ssl_context)
+        timeout = aiohttp.ClientTimeout(total=30)
+        
+        async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
             for attempt in range(self.max_retries):
                 try:
-                    async with session.get(url, timeout=aiohttp.ClientTimeout(total=30)) as response:
+                    async with session.get(url) as response:
                         if response.status == 200:
                             html = await response.text()
                             return html, len(html.encode('utf-8'))
