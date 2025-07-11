@@ -11,7 +11,7 @@ RUN apt-get update && \
 WORKDIR /app
 
 # Copy requirements file
-COPY code/requirements.txt .
+COPY code/python/requirements.txt .
 
 # Install Python packages
 RUN pip install --no-cache-dir -r requirements.txt
@@ -36,7 +36,7 @@ RUN groupadd -r nlweb && \
 USER nlweb
 
 # Copy application code
-COPY code/ /app/
+COPY code/python /app/
 COPY static/ /app/static/
 
 # Copy installed packages from builder stage
