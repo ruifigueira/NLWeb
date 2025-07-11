@@ -7,6 +7,7 @@ import { JsonRenderer } from './json-renderer.js';
 import { TypeRendererFactory } from './type-renderers.js';
 import { RecipeRenderer } from './recipe-renderer.js';
 import { MapDisplay } from './display_map.js';
+import { AddSiteModal } from './add-site-modal.js';
 
 class ModernChatInterface {
   constructor(options = {}) {
@@ -19,6 +20,7 @@ class ModernChatInterface {
     this.prevQueries = [];  // Track previous queries
     this.lastAnswers = [];  // Track last answers
     this.rememberedItems = [];  // Track remembered items
+    this.addSiteModal = new AddSiteModal();
     
     // Store options
     this.options = options;
@@ -2125,10 +2127,13 @@ class ModernChatInterface {
     }
   }
   
-  populateSiteDropdown() {
-    if (!this.sites || this.sites.length === 0) return;
+  async populateSiteDropdown() {
+    const dropdown = this.siteDropdownItems;
+    if (!dropdown) return;
     
-    this.siteDropdownItems.innerHTML = '';
+    dropdown.innerHTML = '';
+    
+    // Add all sites first
     this.sites.forEach(site => {
       const item = document.createElement('div');
       item.className = 'site-dropdown-item';
@@ -2156,7 +2161,31 @@ class ModernChatInterface {
           this.saveConversations();
         }
       });
-      this.siteDropdownItems.appendChild(item);
+      dropdown.appendChild(item);
+    });
+
+    // Add divider
+    const divider = document.createElement('div');
+    divider.className = 'site-dropdown-divider';
+    dropdown.appendChild(divider);
+
+    // Add the "Add New Site" option
+    const addNewSiteItem = document.createElement('div');
+    addNewSiteItem.className = 'site-dropdown-item add-new-site';
+    addNewSiteItem.textContent = '+ Add New Site';
+    addNewSiteItem.addEventListener('click', () => this.addSiteModal.show());
+    
+    dropdown.appendChild(addNewSiteItem);
+    
+    // Add listener for new site added event
+    window.addEventListener('siteAdded', (event) => {
+      const { siteName } = event.detail;
+      // Refresh sites list
+      this.loadSites().then(() => {
+        // Select the newly added site
+        this.selectedSite = siteName;
+        this.elements.chatSiteInfo.textContent = `Asking ${siteName}`;
+      });
     });
   }
   

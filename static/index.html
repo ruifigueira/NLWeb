@@ -151,7 +151,34 @@
     </div>
   </div>
 
+  <!-- Add Site Modal -->
+  <div class="add-site-modal-overlay" id="addSiteModalOverlay" style="display: none;">
+    <div class="add-site-modal">
+      <div class="add-site-modal-header">
+        <h2>Add New Site</h2>
+        <button class="add-site-modal-close">&times;</button>
+      </div>
+      <div class="add-site-modal-content">
+        <form id="addSiteForm">
+          <div class="form-group">
+            <label for="siteName">Site Name:</label>
+            <input type="text" id="siteName" name="siteName" required placeholder="Enter site name">
+          </div>
+          <div class="form-group">
+            <label for="filePath">File Path (URL):</label>
+            <input type="url" id="filePath" name="filePath" required placeholder="Enter file URL">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="add-site-submit">Add Site</button>
+            <button type="button" class="add-site-cancel">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="/static/fp-chat-interface.js"></script>
+  <script type="module" src="/static/add-site-modal.js"></script>
   <script src="/static/oauth-login.js"></script>
 </body>
 </html>
