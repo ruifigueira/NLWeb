@@ -51,5 +51,11 @@ ENV NLWEB_OUTPUT_DIR=/app
 ENV PYTHONPATH=/app
 ENV PORT=8000
 
+COPY --chown=nlweb:nlweb config /config/
+COPY --chown=nlweb:nlweb code/data /data/
+
+RUN mkdir -p /app/logs && \
+    chown -R nlweb:nlweb /app/logs
+
 # Command to run the application
 CMD ["python", "app-file.py"]

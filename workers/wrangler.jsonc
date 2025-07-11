@@ -1,0 +1,39 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"name": "nlweb-worker",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-05-23",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"observability": {
+		"enabled": true
+	},
+	"containers": [
+		{
+			"class_name": "NLWebContainer",
+			"image": "../Dockerfile-workers",
+			"max_instances": 10,
+			"name": "nlweb-containers"
+		}
+	],
+	"durable_objects": {
+		"bindings": [
+			{
+				"class_name": "NLWebContainer",
+				"name": "NLWEB_CONTAINER"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"new_sqlite_classes": [
+				"NLWebContainer"
+			],
+			"tag": "v1"
+		}
+	]
+}
