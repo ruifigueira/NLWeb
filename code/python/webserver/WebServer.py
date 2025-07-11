@@ -732,7 +732,7 @@ async def fulfill_request(method, path, headers, query_params, body, send_respon
             
             try:
                 # Call db_load function
-                await loadJsonToDB(file_path, site_name)
+                await loadJsonToDB(file_path, site_name, force_recompute=True)
                 await send_response(200, {'Content-Type': 'application/json'})
                 await send_chunk(json.dumps({"status": "success", "message": f"Data loaded from {file_path} for site {site_name}"}), end_response=True)
             except Exception as e:
