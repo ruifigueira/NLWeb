@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NLWeb Database Load</title>
+  <link rel="icon" type="image/png" href="./favicon.png">
+  <link rel="stylesheet" href="./common-chat-styles.css">
+  <style>
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #0078d4;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #006cbd;
+    }
+
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .status {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 4px;
+      display: none;
+    }
+
+    .status.success {
+      background-color: #dff0d8;
+      color: #3c763d;
+      border: 1px solid #d6e9c6;
+    }
+
+    .status.error {
+      background-color: #f2dede;
+      color: #a94442;
+      border: 1px solid #ebccd1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Database Load</h1>
+    <form id="dbLoadForm">
+      <div class="form-group">
+        <label for="filePath">File Path (URL):</label>
+        <input type="text" id="filePath" name="filePath" required 
+               placeholder="Enter the URL of the file to load">
+      </div>
+      <div class="form-group">
+        <label for="siteName">Site Name:</label>
+        <input type="text" id="siteName" name="siteName" required 
+               placeholder="Enter the site name">
+      </div>
+      <button type="submit" id="submitBtn">Load Data</button>
+    </form>
+    <div id="status" class="status"></div>
+  </div>
+
+  <script>
+    document.getElementById('dbLoadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      const statusDiv = document.getElementById('status');
+      const filePath = document.getElementById('filePath').value;
+      const siteName = document.getElementById('siteName').value;
+
+      // Disable button and show loading state
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Loading...';
+      statusDiv.style.display = 'none';
+
+      try {
+        const params = new URLSearchParams({
+          file_path: filePath,
+          site_name: siteName
+        });
+        const response = await fetch(`/db_load?${params.toString()}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const data = await response.json();
+
+        statusDiv.style.display = 'block';
+        if (response.ok) {
+          statusDiv.className = 'status success';
+          statusDiv.textContent = 'Data loaded successfully!';
+        } else {
+          statusDiv.className = 'status error';
+          statusDiv.textContent = `Error: ${data.error || 'Failed to load data'}`;
+        }
+      } catch (error) {
+        statusDiv.style.display = 'block';
+        statusDiv.className = 'status error';
+        statusDiv.textContent = `Error: ${error.message}`;
+      } finally {
+        // Re-enable button and restore text
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Load Data';
+      }
+    });
+  </script>
+</body>
+</html>

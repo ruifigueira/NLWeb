@@ -25,6 +25,7 @@ from core.utils.utils import get_param
 from webserver.StreamingWrapper import HandleRequest, SendChunkWrapper
 from methods.generate_answer import GenerateAnswer
 from webserver.static_file_handler import send_static_file
+from data_loading.db_load import loadJsonToDB
 from core.config import CONFIG
 from core.baseHandler import NLWebHandler
 from misc.logger.logging_config_helper import get_configured_logger
@@ -707,6 +708,39 @@ async def fulfill_request(method, path, headers, query_params, body, send_respon
             # Handle OAuth token exchange
             await handle_oauth_token_exchange(method, headers, body, send_response, send_chunk)
             return
+        elif path == "/db_load":
+            # Handle database loading endpoint
+            if method not in ["POST", "GET"]:
+                await send_response(405, {'Content-Type': 'application/json'})
+                await send_chunk(json.dumps({"error": "Method not allowed"}), end_response=True)
+                return
+            
+            # Get required parameters and handle potential list values
+            file_path = query_params.get("file_path")
+            site_name = query_params.get("site_name")
+            
+            # Convert to string if parameters are lists
+            if isinstance(file_path, list):
+                file_path = file_path[0] if file_path else None
+            if isinstance(site_name, list):
+                site_name = site_name[0] if site_name else None
+            
+            if not file_path or not site_name:
+                await send_response(400, {'Content-Type': 'application/json'})
+                await send_chunk(json.dumps({"error": "Missing required parameters: file_path and site_name"}), end_response=True)
+                return
+            
+            try:
+                # Call db_load function
+                await loadJsonToDB(file_path, site_name)
+                await send_response(200, {'Content-Type': 'application/json'})
+                await send_chunk(json.dumps({"status": "success", "message": f"Data loaded from {file_path} for site {site_name}"}), end_response=True)
+            except Exception as e:
+                logger.error(f"Error loading data: {str(e)}", exc_info=True)
+                await send_response(500, {'Content-Type': 'application/json'})
+                await send_chunk(json.dumps({"error": f"Failed to load data: {str(e)}"}), end_response=True)
+            return
+
         elif path == "/api/conversations" or path == "/api/conversations/migrate":
             # Handle conversation history API
             if method == "GET" and path == "/api/conversations":
